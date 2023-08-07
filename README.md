@@ -21,16 +21,9 @@ BiocManager::install("scDblFinder")
 BiocManager::install("ComplexHeatmap")
 
 install.packages("Seurat")
-install.packages("remotes")
-remotes::install_github("satijalab/seurat-wrappers")
-install.packages("ggplot2")
-install.packages("patchwork")
-
-BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
-                       'limma', 'S4Vectors', 'SingleCellExperiment',
-                       'SummarizedExperiment', 'batchelor', 'Matrix.utils'))
-
+install.packages("R.utils")
 install.packages("devtools")
-devtools::install_github('cole-trapnell-lab/leidenbase')
+
+devtools::install_github("satijalab/seurat-wrappers")
 devtools::install_github('cole-trapnell-lab/monocle3') 
 ```
