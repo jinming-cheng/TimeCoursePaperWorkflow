@@ -17,6 +17,7 @@ if (!require("BiocManager", quietly = TRUE))
 
 BiocManager::install("edgeR")
 BiocManager::install("org.Mm.eg.db")
+BiocManager::install("GO.db")
 BiocManager::install("scDblFinder")
 BiocManager::install("ComplexHeatmap")
 
