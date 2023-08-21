@@ -12,8 +12,7 @@ The pseudo-bulk time course analysis uses the quasi-likelihood framework of *edg
 The packages used for this workflow can be installed as follows.
 
 ```r
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
+install.packages("BiocManager")
 
 BiocManager::install("edgeR")
 BiocManager::install("org.Mm.eg.db")
@@ -23,8 +22,8 @@ BiocManager::install("ComplexHeatmap")
 
 install.packages("Seurat")
 install.packages("R.utils")
-install.packages("devtools")
+install.packages("remotes")
 
-devtools::install_github("satijalab/seurat-wrappers")
-devtools::install_github('cole-trapnell-lab/monocle3') 
+remotes::install_github("satijalab/seurat-wrappers")
+remotes::install_github("cole-trapnell-lab/monocle3")
 ```
