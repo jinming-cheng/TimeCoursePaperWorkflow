@@ -45,7 +45,7 @@
 
 \pagestyle{fancy}
 
-\title{Unraveling the timeline of gene expression: a pseudo-temporal trajectory analysis of single-cell RNA sequencing data}
+\title{Unraveling the timeline of gene expression: A pseudotemporal trajectory analysis of single-cell RNA sequencing data}
 \author[1,2]{Jinming Cheng \orcidlink{0000-0003-3806-4694} } 
 \author[1,3,*]{Gordon K. Smyth \orcidlink{0000-0001-9221-2892} }
 \author[1,2,4,*]{Yunshun Chen \orcidlink{0000-0003-4911-5653} }
@@ -93,7 +93,7 @@ eval_save_rdata = TRUE
 @
 
 
-<<load packages, include=FALSE, eval = !eval_1st_integration>>=
+<<load packages, include=FALSE, eval = !eval_1st_integration, purl=FALSE>>=
 library(edgeR) 
 library(ggplot2)
 library(Seurat)
@@ -102,52 +102,40 @@ library(monocle3)
 
 ~\\
 \begin{abstract}
-There has been a rapid development in single cell RNA sequencing (scRNA-seq) technologies in recent years. 
-Droplet-based single cell platforms such as the 10x Genomics' Chromium system enable gene expression profiling of tens of thousands of cells per sample.
-The goal of a typical scRNA-seq analysis is to identify different cell subpopulations and their respective marker genes.
-Trajectory analysis can also be used to infer the developmental or differentiation trajectories of cells by ordering them along a putative lineage tree based on their gene expression profiles.
-This analysis positions cells and cell clusters along a pseudotime trajectory that represents a biological process such as cell differentiation, development, or disease progression.
-Here we demonstrate a time-course analysis to identify genes that are significantly associated with pseudotime.
-The article demonstrates a comprehensive workflow for performing trajectory inference and time course analysis on a multi-sample single cell RNA-seq experiment of the mouse mammary gland.
-The workflow uses open-source R software packages and covers all steps of the analysis pipeline, including quality control, doublet prediction, normalization, integration, dimension reduction, cell clustering, trajectory inference, and pseudo-bulk time course analysis.
-Sample integration and cell clustering follows the \pkg{Seurat} pipeline while the trajectory inference is conducted using the \pkg{monocle3} package.
-The pseudo-bulk time course analysis uses the quasi-likelihood framework of \pkg{edgeR}.
+\textbf{Background:} Single-cell RNA sequencing (scRNA-seq) technologies have rapidly developed in recent years. The droplet-based single-cell platforms enable the profiling of gene expression in tens of thousands of cells per sample. The goal of a typical scRNA-seq analysis is to identify different cell subpopulations and their respective marker genes. Additionally, trajectory analysis can be used to infer the developmental or differentiation trajectories of cells.\\
+\textbf{Methods:} This article demonstrates a comprehensive workflow for performing trajectory inference and time course analysis on a multi-sample single-cell RNA-seq experiment of the mouse mammary gland. The workflow uses open-source R software packages and covers all steps of the analysis pipeline, including quality control, doublet prediction, normalization, integration, dimension reduction, cell clustering, trajectory inference, and pseudo-bulk time course analysis. Sample integration and cell clustering follows the Seurat pipeline while the trajectory inference is conducted using the monocle3 package. The pseudo-bulk time course analysis uses the quasi-likelihood framework of edgeR.\\
+\textbf{Results:} Cells are ordered and positioned along a pseudotime trajectory that represented a biological process of cell differentiation and development. The study successfully identified genes that were significantly associated with pseudotime in the mouse mammary gland.\\
+\textbf{Conclusions:} The demonstrated workflow provides a valuable resource for researchers conducting scRNA-seq analysis using open-source software packages. The study successfully demonstrated the usefulness of trajectory analysis for understanding the developmental or differentiation trajectories of cells. This analysis can be applied to various biological processes such as cell development or disease progression, and can help identify potential biomarkers or therapeutic targets.
 \end{abstract}
 
 
 \section*{\color{f1ROrange}Keywords}
 
-Single cell RNA-seq; mammary gland; trajectory analysis; time course analysis; pseudo-bulk; differential expression analysis
+Single-cell RNA-seq, mammary gland, trajectory analysis, time course analysis, pseudo-bulk, differential expression analysis
 
 \clearpage
 \pagestyle{fancy}
 
 \section*{Introduction}
 
-Single cell RNA sequencing (scRNA-seq) has emerged as a popular technique for transcriptomic profiling of samples at the single cell level.
-With droplet-based methods, thousands of cells can be sequenced in parallel using next-generation sequencing platforms \cite{macosko2015DropSeq,klein2015inDrop}.
+Single-cell RNA sequencing (scRNA-seq) has emerged as a popular technique for transcriptomic profiling of samples at the single-cell level. With droplet-based methods, thousands of cells can be sequenced in parallel using next-generation sequencing platforms \cite{macosko2015DropSeq,klein2015inDrop}.
 One of the most widely used droplet-based scRNA-seq technologies is the 10x Genomics Chromium which enables profiling transcriptomes of tens of thousands of cells per sample \cite{zheng2017nc10X}.
-A common goal of a scRNA-seq analysis is to investigate cell types and states in heterogeneous tissues.
-To achieve this, various pipelines have been developed, such as \pkg{Seurat} \cite{hao2021SeuratV4} and the Bioconductor's OSCA pipeline \cite{amezquita2020orchestrating}.
+A common goal of a scRNA-seq analysis is to investigate cell types and states in heterogeneous tissues. To achieve this, various pipelines have been developed, such as \pkg{Seurat} \cite{hao2021SeuratV4} and the Bioconductor’s OSCA pipeline \cite{amezquita2020orchestrating}.
 A typical scRNA-seq data analysis pipeline involves quality control, normalization, dimension reduction, cell clustering, and differential expression analysis. \newline
 
-As the cost of scRNA-seq continues to drop, more experimental studies involve replicate samples.
-In a multiple sample single-cell experiment, an integration method is required to investigate all cells across all samples simultaneously.
-This ensures that sample and batch effects are appropriately considered in visualizing and clustering cells.
-Popular integration methods include the Seurat's anchor-based integration method \cite{hao2021SeuratV4}, Harmony \cite{korsunsky2019fast}, and the MNN \cite{haghverdi2018batch}.\newline
+As the cost of scRNA-seq continues to drop, more experimental studies involve replicate samples. In a multiple sample single-cell experiment, an integration method is required to investigate all cells across all samples simultaneously. This ensures that sample and batch effects are appropriately considered in visualizing and clustering cells. Popular integration methods include the Seurat’s anchor-based integration method \cite{hao2021SeuratV4}, Harmony \cite{korsunsky2019fast}, and the MNN \cite{haghverdi2018batch}.\newline
 
-After integration and cell clustering, differential expression analysis is often performed to identify marker genes for each cell cluster.
+After integration and cell clustering, differential expression analysis is often performed to identify marker genes for each cell cluster. 
 Various methods have been developed at the single-cell level for finding marker genes \cite{risso2018zinbwave,lun2016scran}.
 Recently, the pseudo-bulk method has become increasingly popular due to its superior computational efficiency and its ability to consider biological variation between replicate samples \cite{crowell2020muscat}.\newline
 
-Trajectory inference is another popular downstream analysis that aims to study cell differentiation or cell type development.
+Trajectory inference is another popular downstream analysis that aims to study cell differentiation or cell type development. 
 Popular software tools to perform trajectory analysis include \pkg{monocle3} \cite{cao2019monocle3} and \pkg{slingshot} \cite{street2018slingshot}.
 These methods learn trajectories based on the change of gene expression and order cells along a trajectory to obtain pseudotime \cite{trapnell2014monocle, saelens2019comparison}.
 This allows for pseudotime-based time course analysis in single-cell experiments, which is extremely useful for investigating specific biological questions of interest.\newline
 
-Here we present a new single-cell workflow that integrates trajectory analysis and pseudo-bulking to execute a single-cell pseudo time course analysis.
-The inputs for this workflow are single-cell count matrices, such as those generated by 10x \pkg{cellranger}.
-The single-cell level analysis is performed in \pkg{Seurat}, and the trajectory analysis is conducted using \pkg{monocle3}.
+Here we present a new single-cell workflow that integrates trajectory analysis and pseudo-bulking to execute a single-cell pseudo time course analysis. The inputs for this workflow are single-cell count matrices, such as those generated by 10x Genomic’s \pkg{cellranger}.
+The methods involved open source packages in R. The single-cell level analysis is performed in \pkg{Seurat}, and the trajectory analysis is conducted using \pkg{monocle3}.
 Once the pseudo-bulk samples are created and assigned pseudotime, a time course analysis is conducted in \pkg{edgeR} \cite{mccarthy2012edgeR}.
 The analysis pipeline presented in this article can be applied to any scRNA-seq study with replicate samples.
 \newline 
@@ -155,10 +143,35 @@ The analysis pipeline presented in this article can be applied to any scRNA-seq 
 
 \section*{Description of the biological experiment}
 
-The scRNA-seq data used in this workflow consists of five mouse mammary epithelium samples at five different stages: embryonic, early postnatal, pre-puberty, puberty and adult.
-The puberty sample is from the study in Pal et al. 2017 \cite{pal2017mouse}, whereas the other samples are from Pal et al. 2021 \cite{pal2021mouse}.
+The scRNA-seq data used to demonstrate this workflow consists of five mouse mammary epithelium samples at five different stages: embryonic, early postnatal, pre-puberty, puberty and adult. The puberty sample is from the study in Pal et al. 2017 \cite{pal2017mouse}, whereas the other samples are from Pal et al. 2021 \cite{pal2021mouse}.
 These studies examined the stage-specific single-cell profiles in order to gain insight into the early developmental stages of mammary gland epithelial lineage.
-The \pkg{cellranger} count matrix outputs of these five samples are available on the GEO repository as series GSE103275 and GSE164017.
+The \pkg{cellranger} count matrix outputs of these five samples are available on the GEO repository as series \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103275}{GSE103275} and \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE164017}{GSE164017}.
+
+
+\section*{Package installation}
+
+Bioconductor packages used for this workflow can be installed as follows.
+<<BioPackages, eval=FALSE>>=
+install.packages("BiocManager")
+BiocManager::install("edgeR")
+BiocManager::install("org.Mm.eg.db")
+BiocManager::install("GO.db")
+BiocManager::install("scDblFinder")
+BiocManager::install("ComplexHeatmap")
+@
+
+CRAN packages used for this workflow can be installed as follows.
+<<CranPackages, eval=FALSE>>=
+install.packages("Seurat")
+install.packages("R.utils")
+install.packages("remotes")
+@
+
+GitHub packages used for this workflow can be installed as follows.
+<<GitPackages, eval=FALSE>>=
+remotes::install_github("satijalab/seurat-wrappers")
+remotes::install_github("cole-trapnell-lab/monocle3")
+@
 
 
 \section*{Data preparation}
@@ -166,7 +179,8 @@ The \pkg{cellranger} count matrix outputs of these five samples are available on
 \subsection*{Downloading the data}
 
 The \pkg{cellranger} output of each sample consists of three key files: a count matrix in \code{mtx.gz} format, barcode information in \code{tsv.gz} format and feature (or gene) information in \code{tsv.gz} format.\newline
-The outputs of the mouse mammary epithelium at embryonic stage (E18.5), post-natal 5 days (P5), 2.5 weeks (Pre-puberty), and 10 weeks (Adult) can be downloaded from \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE164017}{\textbf{GSE164017}} \cite{pal2021mouse}, whereas the output of mouse mammary epithelium at 5 weeks (Puberty) can be downloaded from \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103275}{\textbf{GSE103275}} \cite{pal2017mouse}. \newline
+
+The outputs of the mouse mammary epithelium at embryonic stage (E18.5), post-natal 5 days (P5), 2.5 weeks (Pre-puberty), and 10 weeks (Adult) can be downloaded from \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE164017}{GSE164017} \cite{pal2021mouse}, whereas the output of mouse mammary epithelium at 5 weeks (Puberty) can be downloaded from \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103275}{GSE103275} \cite{pal2017mouse}. \newline
 
 We first create a \code{data} directory to store all the data files.
 <<data dir>>=
@@ -174,13 +188,13 @@ data_dir <- "data"
 if(!dir.exists(data_dir)){dir.create(data_dir, recursive=TRUE)}
 @
 
-<<rds file dir,include=FALSE>>=
+<<rds file dir,include=FALSE,purl=FALSE>>=
 rds_res_dir <- "results/rds_files"
 if(!dir.exists(rds_res_dir)){dir.create(rds_res_dir, recursive=TRUE)}
 @
 
 We then download the barcode and count matrix files of the five samples.
-<<barcode and matrix files, include=FALSE>>=
+<<barcode and matrix files, include=FALSE, purl=FALSE>>=
 accessions <-c("GSM4994960","GSM4994962","GSM4994963","GSM2759554","GSM4994967")
 stages <- c("E18-ME", "Pre-D5-BL6", "Pre-BL6", "5wk-1", "Adult-BL6")
 file_suffixes <- c("barcodes.tsv.gz", "matrix.mtx.gz")
@@ -200,10 +214,8 @@ for ( i in 1:length(accessions) ) {
 }
 @
 
-Since the five samples in this workflow are from two separate studies and were processed using different versions of mouse genome, the feature information is slightly different between the two runs. 
-Here, we download the feature information of both runs.
-The \code{GSM2759554\_5wk-1-genes.tsv.gz} file contains the feature information for the \code{5wk-1} sample, whereas \code{GSE164017\_features.tsv.gz} contains the feature information for the other four samples.
-<<featureFiles,  include=FALSE>>=
+Since the five samples in this workflow are from two separate studies and were processed using different versions of mouse genome, the feature information is slightly different between the two runs. Here, we download the feature information of both runs. The \code{GSM2759554\_5wk-1-genes.tsv.gz} file contains the feature information for the \code{5wk-1} sample, whereas \code{GSE164017\_features.tsv.gz} contains the feature information for the other four samples.
+<<featureFiles,  include=FALSE, purl=FALSE>>=
 GSE <- c("GSE164017", "GSM2759554")
 feature_filenames <- c("GSE164017_features.tsv.gz",
                        "GSM2759554_5wk-1-genes.tsv.gz")
@@ -273,9 +285,7 @@ table(dge_merged$samples$group)
 
 \subsection*{Quality control}
 
-Quality control (QC) is essential for single cell RNA-seq data analysis.
-Common choices of QC metrics include number of expressed genes or features, library size, and proportion of reads mapped to mitochondrial genes in each cell.
-The number of expressed genes and mitochondria read percentage in each cell can be calculated as follows.
+Quality control (QC) is essential for single-cell RNA-seq data analysis. Common choices of QC metrics include number of expressed genes or features, library size, and proportion of reads mapped to mitochondrial genes in each cell. The number of expressed genes and mitochondria read percentage in each cell can be calculated as follows.
 <<quality control>>=
 dge_merged$samples$num_exp_gene <- colSums(dge_merged$counts>0)
 mito_genes <- rownames(dge_merged)[grep("^mt-",rownames(dge_merged))]
@@ -319,11 +329,11 @@ p2 <- ggplot(data = dge_merged$samples,
 patchwork::wrap_plots(p1, p2, ncol=2)
 @
 
-Cells with a very low number of genes (< 500), as well as high mitochondria read percentage (> 10\%), are considered of low quality and hence are removed from the analysis.
-Cells expressing a large number of genes are also removed as they are likely to be doublets.
-Different thresholds are selected for different samples based on the distribution of the number of genes expressed.
-Here, we choose 5000, 6000, 6000, 3000, 4000 for E18.5-epi, P5, pre-puberty, puberty and adult samples, respectively.
-In this workflow, most of the single-cell analysis is conducted using the \textbf{\pkg{Seurat}} package.
+
+Cells with a very low number of genes (<500), as well as high mitochondria read percentage (>10\%), are considered of low quality and hence are removed from the analysis.
+Cells expressing a large number of genes are also removed as they are likely to be doublets. 
+Different thresholds are selected for different samples based on the distribution of the number of genes expressed. Here, we choose 5000, 6000, 6000, 3000, 4000 for E18.5-epi, P5, pre-puberty, puberty and adult samples, respectively. 
+In this workflow, most of the single-cell analysis is conducted using the \pkg{Seurat} package.
 A list of five Seurat objects are first created to store the data after QC.
 \newline
 <<cell filtering, results='hide',eval=eval_single_sample_Seurat>>=
@@ -345,14 +355,7 @@ names(data_seurat) <- samples
 
 \subsection*{Standard Seurat analysis of individual sample}
 
-A standard Seurat analysis is performed for each individual sample.
-In particular, the data of each sample is first normalized by the default log normalization method in \code{NormalizeData}. 
-The top 2000 highly variable genes are identified by \code{FindVariableFeatures}.
-The normalized data of the 2000 highly variable genes are scaled by \code{ScaleData} to have a mean of 0 and a variance of 1. 
-The principal component analysis (PCA) dimension reduction is performed on the highly variable genes by \code{RunPCA}. 
-Uniform manifold approximation and projection (UMAP) dimension reduction is performed on the first 30 PCs by \code{RunUMAP}.
-Cell clustering is performed by \code{FindNeighbors} and \code{FindClusters}.
-The cell clustering resolution is set at 0.1, 0.1, 0.2, 0.2 and 0.2 for E18.5-epi, P5, pre-puberty, puberty and adult, respectively.
+A standard Seurat analysis is performed for each individual sample. In particular, the data of each sample is first normalized by the default log normalization method in \code{NormalizeData}. The top 2000 highly variable genes are identified by \code{FindVariableFeatures}. The normalized data of the 2000 highly variable genes are scaled by \code{ScaleData} to have a mean of 0 and a variance of 1. The principal component analysis (PCA) dimension reduction is performed on the highly variable genes by \code{RunPCA}. Uniform manifold approximation and projection (UMAP) dimension reduction is performed on the first 30 PCs by \code{RunUMAP}. Cell clustering is performed by \code{FindNeighbors} and \code{FindClusters}. The cell clustering resolution is set at 0.1, 0.1, 0.2, 0.2 and 0.2 for E18.5-epi, P5, pre-puberty, puberty and adult, respectively.
 
 <<analysis of each sample, results='hide', eval=eval_single_sample_Seurat>>=
 data_seurat <- lapply(data_seurat, NormalizeData)
@@ -374,6 +377,7 @@ Here we use the \pkg{scDblFinder} package \cite{germain2021doublet} to further r
 To do that, each Seurat object in the list is first converted into a \code{SingleCellExperiment} object using the \code{as.SingleCellExperiment} function in \pkg{Seurat}.
 Then the \code{scDblFinder} function in the \pkg{scDblFinder} package is called to predict potential doublets on each \code{SingleCellExperiment} object.
 The \code{scDblFinder} output for each sample is stored in the corresponding Seurat object.
+
 <<doublet detection, results='hide',eval=eval_single_sample_Seurat>>=
 library(scDblFinder)
 for (i in 1:5) {
@@ -387,12 +391,12 @@ for (i in 1:5) {
 }
 @
 
-<<save rds single sample analysis, include=FALSE, eval=eval_single_sample_Seurat>>=
+<<save rds single sample analysis, include=FALSE, eval=eval_single_sample_Seurat, purl=FALSE>>=
 filename_rds = paste0(rds_res_dir,"/","data_seurat",".rds")
 saveRDS(data_seurat, file = filename_rds)
 @
 
-<<read rds single sample analysis, include=FALSE, eval=!eval_single_sample_Seurat>>=
+<<read rds single sample analysis, include=FALSE, eval=!eval_single_sample_Seurat, purl=FALSE>>=
 filename_rds = paste0(rds_res_dir,"/","data_seurat",".rds")
 data_seurat = readRDS(filename_rds)
 @
@@ -401,7 +405,7 @@ The main object of this single-cell experiment is to examine the early developme
 Therefore, we focus on epithelial cells for the rest of the analysis.
 We use the \gene{Epcam} gene to identify epithelial cell clusters in each sample.
 The cell clustering, the expression level of \gene{Epcam} and doublet prediction results of each sample are shown below (Figure 2).
-<< Figure2, fig.cap="UMAP visualization of each individual samples. The UMAP plots, in sequence from the top row to the bottom row, correspond to E18.5-epi, P5, Pre-puberty, Puberty, and Adult, respectively. In each row, cells are coloured by cluster on the left, by Epcam expression level in the middle, and by doublet prediction on the right.", fig.height = 16, fig.width=12, out.width="85%">>=
+<< Figure2, fig.cap="UMAP visualization of each individual sample. The UMAP plots, in sequence from the top row to the bottom row, correspond to E18.5-epi, P5, Pre-puberty, Puberty, and Adult, respectively. In each row, cells are coloured by cluster on the left, by Epcam expression level in the middle, and by doublet prediction on the right.", fig.height = 16, fig.width=12, out.width="85%">>=
 p1 <- lapply(data_seurat,function(x){DimPlot(x, pt.size=0.1, cols=my_colors_15) + 
                 ggtitle(x$group[1]) + theme(plot.title=element_text(hjust=0.5))})
 p2 <- lapply(data_seurat, FeaturePlot, feature="Epcam", pt.size=0.1)
@@ -441,7 +445,7 @@ do.call(c, lapply(epi_cells, length))
 
 Since we have five individual scRNA-seq samples, conducting an integration analysis is necessary to explore all cells across these samples simultaneously.
 In this workflow, we use the anchor-based method in the \pkg{Seurat} package for integration.
-A \code{Seurat} object is first created from the merged \code{DGEList} object of epithelial cells using \code{CreateSeuratObject} function without filtering any cells (\code{min.features} is set to 0). 
+A Seurat object is first created from the merged \code{DGEList} object of epithelial cells using \code{CreateSeuratObject} function without filtering any cells (\code{min.features} is set to 0). 
 <<merge epi cells>>=
 epi_cells <- do.call(c, epi_cells)
 dge_merged_epi <- dge_merged[, epi_cells]
@@ -450,8 +454,8 @@ seurat_merged <- CreateSeuratObject(counts = dge_merged_epi$counts,
                       min.cells = 3, min.features = 0, project = "mammary_epi")
 @
 
-Then the \code{Seurat} object is split into a list of five \code{Seurat} objects, where each object corresponds to one of the five samples. 
-For each sample, the log normalization method is applied to normalize the raw count by \code{NormalizeData}, and highly variable genes are identified by \code{FindVariableFeatures}. 
+Then the Seurat object is split into a list of five Seurat objects, where each object corresponds to one of the five samples. 
+For each sample, the log normalization method is applied to normalize the raw count by \code{NormalizeData}, and highly variable genes are identified by \code{FindVariableFeatures}.
 <<split seurat epi>>=
 seurat_epi <- SplitObject(seurat_merged, split.by = "group")
 seurat_epi <- lapply(seurat_epi, NormalizeData)
@@ -459,7 +463,7 @@ seurat_epi <- lapply(seurat_epi, FindVariableFeatures, nfeatures = 2000)
 @
 
 The feature genes used for integration are chosen by \code{SelectIntegrationFeatures}, and these genes are used to identify anchors for integration by \code{FindIntegrationAnchors}.
-The integration process is performed by \code{IntegrateData} based on the identified anchors. 
+The integration process is performed by \code{IntegrateData} based on the identified anchors.  
 <<Seurat integration, results='hide', eval=eval_1st_integration>>=
 anchor_features <- SelectIntegrationFeatures(seurat_epi,
                       nfeatures = 2000, verbose = FALSE)
@@ -481,12 +485,12 @@ seurat_int <- FindNeighbors(seurat_int, dims = 1:30, verbose = FALSE)
 seurat_int <- FindClusters(seurat_int, resolution = 0.2, verbose = FALSE)
 @
 
-<<save rds 1st integration, include=FALSE, eval=eval_1st_integration>>=
+<<save rds 1st integration, include=FALSE, eval=eval_1st_integration, purl=FALSE>>=
 filename_rds = paste0(rds_res_dir,"/","seurat_int",".rds")
 saveRDS(seurat_int, file = filename_rds)
 @
 
-<<read rds 1st integration, include=FALSE, eval=!eval_1st_integration>>=
+<<read rds 1st integration, include=FALSE, eval=!eval_1st_integration, purl=FALSE>>=
 filename_rds = paste0(rds_res_dir,"/","seurat_int",".rds")
 seurat_int = readRDS(filename_rds)
 @
@@ -509,16 +513,14 @@ These three major epithelial cell populations have been well studied in the lite
 By examining the classic marker genes of the three cell types, we are able to identify basal, LP and ML cell populations in the integrated data (Figure 4). 
 Here we use \gene{Krt14} and \gene{Acta2} for basal, \gene{Csn3} and \gene{Elf5} for LP, and \gene{Prlr} and \gene{Areg} for ML.
 We also examine the expression level of \gene{Hmgb2} and \gene{Mki67} as they are typical markers for cycling cells and the expression level of \gene{Igfbp7} and \gene{Fabp4} as they are marker genes for stromal cells.
-<<Figure4,  fig.cap="Feature plots of the integrated data. Genes from the top row to the bottom rows are the markers of basal, LP, ML, cycling cells, and stroma, respectively.", fig.width=4*2, fig.height = 3*5, out.width="60%">>=
+<<Figure4,  fig.cap="Feature plots of the integrated data. Genes from the top row to the bottom rows are the markers of basal, LP, ML, cycling, and stromal cells, respectively.", fig.width=4*2, fig.height = 3*5, out.width="60%">>=
 markers <- c("Krt14", "Acta2", "Csn3","Elf5", "Prlr","Areg", 
              "Hmgb2", "Mki67", "Igfbp7","Fabp4")
 DefaultAssay(seurat_int) <- "RNA"
 FeaturePlot(seurat_int, order = TRUE, pt.size = 0.1, features = markers, ncol = 2)
 @
 
-Based on the feature plots, cluster 1, cluster 2 and cluster 0 represent the basal, LP and ML cell populations, respectively.
-Cluster 4 mainly consists of cycling cells, whereas cluster 3 seems to be a luminal intermediate cell cluster expressing both LP and ML markers.
-Cluster 5 consists of a few non-epithelial (stromal) cells that have not been filtered out previously.\newline
+Based on the feature plots, cluster 1, cluster 2 and cluster 0 represent the basal, LP and ML cell populations, respectively. Cluster 4 mainly consists of cycling cells, whereas cluster 3 seems to be a luminal intermediate cell cluster expressing both LP and ML markers. Cluster 5 consists of a few non-epithelial (stromal) cells that have not been filtered out previously.\newline
 
 The number of cells in each cluster for each sample is shown below.
 <<table cell number>>=
@@ -578,12 +580,12 @@ cds_obj <- cluster_cells(cds_obj)
 cds_obj <- learn_graph(cds_obj, use_partition=FALSE, close_loop=FALSE)
 @
 
-<<save rds cds object, eval=eval_cds, include=FALSE>>=
+<<save rds cds object, eval=eval_cds, include=FALSE, purl=FALSE>>=
 filename_rds = paste0(rds_res_dir,"/", "cds_obj_final",".rds")
 saveRDS(cds_obj, file = filename_rds)
 @
 
-<<read rds cds object, eval=!eval_cds, include=FALSE>>=
+<<read rds cds object, eval=!eval_cds, include=FALSE, purl=FALSE>>=
 filename_rds = paste0(rds_res_dir,"/", "cds_obj_final",".rds")
 cds_obj = readRDS(filename_rds)
 @
@@ -592,28 +594,37 @@ cds_obj = readRDS(filename_rds)
 
 The \code{plot\_cells} function of \pkg{monocle3} is used to generate a trajectory plot that superimposes the trajectory information onto the UMAP representation of the integrated data.
 By adjusting the \code{label\_principal\_points} parameter, the names of roots, leaves, and branch points can be displayed.
-Cells in the trajectory UMAP plot (Figure 6) on the left are colored by cell cluster identified in the previous Seurat integration analysis.
-\newline
+Cells in the trajectory UMAP plot (Figure 6) are coloured by cell cluster identified in the previous Seurat integration analysis.
 
-Along the \pkg{monocle3} trajectory analysis, several nodes are identified and marked with black circular dots on the resulting plot, representing key points along the trajectories.
-To establish the order of cells and calculate their corresponding pseudotime, it is necessary to select a starting node from among the identified nodes. 
-For this analysis, node \code{"Y\_65"} in the basal population (cluster 1) was selected as the starting node, as mammary stem cells are known to be enriched in the basal population and give rise to LP and ML cells in the epithelial lineage \cite{shackleton2006stemcell}.
-It should be noted that node numbers may vary depending on the version of monocle3 used.\newline
-
-The cells are then ordered and assigned pseudotime values by the \code{order\_cells} function in \pkg{monocle3}.
-The resulting pseudotime information can be visualized on the UMAP plot by using the \code{plot\_cells} function, as demonstrated in the UMAP plot on the right (Figure 6).
-<<Figure6, fig.cap="UMAP visualization of trajectory and pseudotime computed by monocle3. Cells are coloured by cluster on the left and by pseudotime on the right.", fig.width=10, fig.height = 4, out.width="100%">>=
+<<Figure6, fig.cap="UMAP visualization of trajectory inferred by monocle3. Cells are coloured by cluster.", fig.width=5*1.2, fig.height = 4*1.2, out.width="55%">>=
 p1 <- plot_cells(cds_obj, color_cells_by="seurat_clusters",
                  group_label_size=4, graph_label_size=3,
                  label_cell_groups=FALSE, label_principal_points=TRUE,
                  label_groups_by_cluster=FALSE) + 
       scale_color_manual(values = my_colors_15)
-cds_obj <- order_cells(cds_obj, root_pr_nodes="Y_65")
+p1 
+@
+
+
+Along the \pkg{monocle3} trajectory analysis, several nodes are identified and marked with black circular dots on the resulting plot, representing key points along the trajectories.
+To establish the order of cells and calculate their corresponding pseudotime, it is necessary to select a starting node from among the identified nodes. 
+For this analysis, node \code{"Y\_64"} in the basal population (cluster 1) was selected as the starting node, as mammary stem cells are known to be enriched in the basal population and give rise to LP and ML cells in the epithelial lineage \cite{shackleton2006stemcell}.
+It should be noted that node numbers may vary depending on the version of monocle3 used.
+
+<<orderCells>>=
+cds_obj <- order_cells(cds_obj, root_pr_nodes="Y_64")
+@
+
+
+The cells are then ordered and assigned pseudotime values by the \code{order\_cells} function in \pkg{monocle3}.
+The resulting pseudotime information can be visualized on the UMAP plot by using the \code{plot\_cells} function, as demonstrated in the UMAP plot on the right (Figure 7).
+<<Figure7, fig.cap="UMAP visualization of pseudotime computed by monocle3. Cells are coloured by pseudotime.", fig.width=5*1.2, fig.height = 4*1.2, out.width="55%">>=
 p2 <- plot_cells(cds_obj, color_cells_by="pseudotime",
                  label_groups_by_cluster=FALSE, label_leaves=FALSE,
                  label_branch_points=FALSE)
-p1 | p2
+p2
 @
+
 
 The \code{pseudotime} function in \pkg{monocle3} allows users to extract the pseudotime values of the cells from a \code{cell\_data\_set} object. 
 This information can then be stored in the metadata of the Seurat object for further analysis.
@@ -622,16 +633,13 @@ seurat_int$pseudotime <- pseudotime(cds_obj)
 @
 
 
-\section*{Psuedo-bulk time course analysis with edgeR}
+\section*{Pseudo-bulk time course analysis with edgeR}
 
 \subsection*{Constructing pseudo-bulk profiles}
 
-After obtaining the pseudotime of each cell, we proceed to a time course analysis to identify genes that change significantly along the pseudotime time.
-Our approach involves creating pseudo-bulk samples using a pseudo-bulking approach and performing an \pkg{edgeR}-style time course analysis.\newline
+After obtaining the pseudotime of each cell, we proceed to a time course analysis to identify genes that change significantly along the pseudotime. Our approach involves creating pseudo-bulk samples using a pseudo-bulking approach and performing an \pkg{edgeR}-style time course analysis.\newline
 
-To create the pseudo-bulk samples, read counts are aggregated for all cells with the same combination of sample and cluster.
-The number of cells used to construct each pseudo-bulk sample is added to the sample metadata.
-The average pseudotime of all cells in each pseudo-bulk sample is used as the pseudotime for that sample.
+To create the pseudo-bulk samples, read counts are aggregated for all cells with the same combination of sample and cluster. The number of cells used to construct each pseudo-bulk sample is added to the sample metadata. The average pseudotime of all cells in each pseudo-bulk sample is used as the pseudotime for that sample.
 
 <<prepare pseudobulk data, eval= eval_prepare_pseudobulk >>=
 y <- dge_merged[, colnames(seurat_int)]
@@ -645,8 +653,7 @@ y$samples$pseudotime <- avg_pseudotime[colnames(y)]
 y$samples$cell_number <- cell_number[colnames(y)]
 @
 
-The Entrez gene IDs are added to the gene information.
-Genes with no valid Entrez gene IDs are removed from the downstream analysis.
+The Entrez gene IDs are added to the gene information. Genes with no valid Entrez gene IDs are removed from the downstream analysis.
 <<obtain Entrez GeneID, eval= eval_prepare_pseudobulk>>=
 library(org.Mm.eg.db)
 entrez_id <- select(org.Mm.eg.db, keys = y$genes$Symbol,
@@ -660,12 +667,12 @@ The samples are ordered by average pseudotime for the following analysis.
 y <- y[, order(y$samples$pseudotime)]
 @
 
-<<save pseudobulk, include=FALSE, eval= eval_prepare_pseudobulk>>=
+<<save pseudobulk, include=FALSE, eval= eval_prepare_pseudobulk, purl=FALSE>>=
 filename_rds <- paste0(rds_res_dir,"/","dge_pseudobulk",".rds")
 saveRDS(y, file = filename_rds)
 @
 
-<<read pseudobulk, include=FALSE, eval= !eval_prepare_pseudobulk>>=
+<<read pseudobulk, include=FALSE, eval= !eval_prepare_pseudobulk, purl=FALSE>>=
 filename_rds <- paste0(rds_res_dir,"/","dge_pseudobulk",".rds")
 y <- readRDS(file = filename_rds)
 @
@@ -699,22 +706,22 @@ The number of genes and samples after filtering are shown below.
 dim(y)
 @
 
-Normalization is performed by the trimmed mean of M values (TMM) method \cite{robinson2010tmm} implemented in the \code{calcNormFactors} function in \pkg{edgeR}.
+Normalization is performed by the trimmed mean of M values (TMM) method \cite{robinson2010TMM} implemented in the \code{calcNormFactors} function in \pkg{edgeR}.
 <<TMM normalization>>=
 y <- calcNormFactors(y)
 @
 
 A Multi-dimensional scaling (MDS) plot serves as a valuable diagnostic tool for investigating the relationship among samples.
-MDS plots are produced using the \code{plotMDS} function in \pkg{edgeR} (Figure 7).
-<<Figure7, fig.cap="Multi-dimensional scaling (MDS) plot of the pseudo-bulk samples labelled by pseudotime. Samples are coloured by origianl cell cluster on the left and by developmental stage on the right.", fig.width = 11, fig.height = 5, out.width="100%">>=
+MDS plots are produced using the \code{plotMDS} function in \pkg{edgeR} (Figure 8).
+<<Figure8, fig.cap="Multi-dimensional scaling (MDS) plot of the pseudo-bulk samples labelled by pseudotime. Samples are coloured by original cell cluster on the left and by developmental stage on the right.", fig.width = 11, fig.height = 5, out.width="100%">>=
 par(mar = c(5.1, 5.1, 2.1, 2.1), mfrow=c(1,2))
 cluster <- y$samples$seurat_clusters
 group <- y$samples$group
 plotMDS(y, labels = round(y$samples$pseudotime, 2),
-    xlim=c(-6,4), ylim=c(-3,3), col=my_colors_15[cluster])
+    xlim=c(-7,4), ylim=c(-3,3), col=my_colors_15[cluster])
 legend("topleft", legend=levels(cluster), col=my_colors_15, pch=16)
 plotMDS(y, labels = round(y$samples$pseudotime, 2),
-    xlim=c(-6,4), ylim=c(-3,3), col=my_colors_15[group])
+    xlim=c(-7,4), ylim=c(-3,3), col=my_colors_15[group])
 legend("topleft", legend=levels(group), col=my_colors_15, pch=16)
 @
 
@@ -742,10 +749,10 @@ design
 
 \subsection*{Dispersion estimation}
 
-The \pkg{edgeR} package uses negative binomial (NB) distribution to model read counts of each gene across all the sample. 
+The \pkg{edgeR} package uses negative binomial (NB) distribution to model read counts of each gene across all the samples. 
 The NB dispersions are estimated by the \code{estimateDisp} function.
-The estimated common, trended and gene-specific dispersions can be visualized by \code{plotBCV} (Figure 8).
-<<Figure8, fig.cap="A scatter plot of the biological coefficient of variation (BCV) against the average abundance of each gene. The square-root estimates of the common, trended and gene-wise NB dispersions are shown.", fig.width = 5, fig.height = 4.5, out.width="55%">>=
+The estimated common, trended and gene-specific dispersions can be visualized by \code{plotBCV} (Figure 9).
+<<Figure9, fig.cap="A scatter plot of the biological coefficient of variation (BCV) against the average abundance of each gene. The square-root estimates of the common, trended and gene-wise NB dispersions are shown.", fig.width = 5, fig.height = 4.5, out.width="55%">>=
 y <- estimateDisp(y, design)
 sqrt(y$common.dispersion)
 plotBCV(y)
@@ -756,8 +763,8 @@ Note that only the trended NB dispersion is used in the QL method.
 The gene-specific variability is captured by the QL dispersion.\newline
 
 The \code{glmQLFit} function is used to fit a QL model and estimate QL dispersions.
-The QL dispersion estimates can be visualized by \code{plotQLDisp} (Figure 9).
-<<Figure9, fig.cap="A scatter plot of the quarter-root QL dispersion against the average abundance of each gene. Estimates are shown for the raw, trended and squeezed dispersions.", fig.width=5, fig.height = 4.5, out.width="55%">>=
+The QL dispersion estimates can be visualized by \code{plotQLDisp} (Figure 10).
+<<Figure10, fig.cap="A scatter plot of the quarter-root QL dispersion against the average abundance of each gene. Estimates are shown for the raw, trended and squeezed dispersions.", fig.width=5, fig.height = 4.5, out.width="55%">>=
 fit <- glmQLFit(y, design, robust=TRUE)
 plotQLDisp(fit)
 @
@@ -765,7 +772,7 @@ plotQLDisp(fit)
 \subsection*{Time course trend analysis}
 
 The QL F-tests are performed by \code{glmQLFTest} in \pkg{edgeR} to identify genes that change significantly along the pseudotime.
-The test are conducted on all three covariates of the spline model matrix.
+The tests are conducted on all three covariates of the spline model matrix.
 This is because the significance of any of the three coefficients would indicate a strong correlation between gene expression and pseudotime.
 <<F test>>=
 res <- glmQLFTest(fit, coef=2:4)
@@ -794,13 +801,13 @@ head(tab.up)
 head(tab.down)
 @
 
-Scatter plots are produced to visualize the relationship between gene expression level and pseudotime for the top 3 increasing and the top 3 decreasing genes (Figure 10).
+Scatter plots are produced to visualize the relationship between gene expression level and pseudotime for the top 3 increasing and the top 3 decreasing genes (Figure 11).
 Each point in the scatter plot indicates the observed \code{logCPM} of a pseudo-bulk sample at its average pseudotime. 
 A smooth curve is drawn along pseudotime for each gene using the fitted \code{logCPM} values obtained from the spline model.
 The \code{cpm} function in \pkg{edgeR} is used to calculate the observed and fitted \code{logCPM}.
 Since there is a \code{cpm} function in the \pkg{SingleCellExperiment} package, we use \code{edgeR::cpm} to explicitly call the \code{cpm} function in \pkg{edgeR}.
 The smooth curves for the top row's 3 genes exhibit a generally increasing trend in gene expression over pseudotime, while the curves for the bottom row's 3 genes show a general decreasing trend.
-<<Figure10, fig.cap="Scatter plots of expression of top genes along pseudotime. The black dots indicate the observed values, while the red line represents the fitted values calculated along pseudotime.", fig.width = 8.4, fig.height = 5.6, out.width="100%">>=
+<<Figure11, fig.cap="Scatter plots of expression of top genes along pseudotime. The black dots indicate the observed values, while the red line represents the fitted values calculated along pseudotime.", fig.width = 8.4, fig.height = 5.6, out.width="100%">>=
 logCPM.obs <- edgeR::cpm(y, log=TRUE, prior.count=fit$prior.count)
 logCPM.fit <- edgeR::cpm(fit, log=TRUE)
 topGenes <- c(rownames(tab.up)[1:3], rownames(tab.down)[1:3])
@@ -815,11 +822,11 @@ for(i in 1:6) {
 }
 @
 
-A heatmap is generated to examine the top 20 up and top 20 down genes collectively (Figure 11).
+A heatmap is generated to examine the top 20 up and top 20 down genes collectively (Figure 12).
 In the heatmap, pseudo-bulk samples are arranged in increasing pseudotime from left to right.
 The up genes are on the top half of the heatmap whereas the down genes are on the bottom half.
 The heatmap shows a gradual increase in expression levels of the up genes from left to right, while the down genes display the opposite trend.
-<<Figure11, fig.cap="Heatmap of top 20 up and top 20 down genes. Rows are genes and columns are pseudo-bulk samples.", fig.width=6, fig.height = 8, out.width="60%">>=
+<<Figure12, fig.cap="Heatmap of top 20 up and top 20 down genes. Rows are genes and columns are pseudo-bulk samples.", fig.width=6, fig.height = 8, out.width="60%">>=
 topGenes <- c(rownames(tab.up)[1:20], rownames(tab.down)[1:20])
 z <- logCPM.obs[topGenes, ]
 z <- t(scale(t(z)))
@@ -831,14 +838,9 @@ ComplexHeatmap::Heatmap(z, name = "Z score",
 
 \subsection*{Gene ontology analysis}
 
-To interpret the results of the time course analysis at the functional level, we perform geneset enrichment analysis.
-Gene ontology (GO) is one of the commonly used databases for this purpose.
-The GO terms in the GO databases are categorized into three classes: biological process (BP), cellular component (CC) and molecular function (MF). 
-In a GO analysis, we are interested in finding GO terms that are over-represented or enriched with significant genes.\newline
+To interpret the results of the time course analysis at the functional level, we perform gene set enrichment analysis. Gene ontology (GO) is one of the commonly used databases for this purpose. The GO terms in the GO databases are categorized into three classes: biological process (BP), cellular component (CC) and molecular function (MF). In a GO analysis, we are interested in finding GO terms that are over-represented or enriched with significant genes.\newline
 
-GO analysis is usually directional.
-For simplicity, we re-perform the QL F-test on the \code{Z1} coefficient to identify genes that exhibit a general linear increase or decrease along pseudotime.
-The numbers of genes with a significant increasing or decreasing linear trend are shown below.
+GO analysis is usually directional. For simplicity, we re-perform the QL F-test on the \code{Z1} coefficient to identify genes that exhibit a general linear increase or decrease along pseudotime. The numbers of genes with a significant increasing or decreasing linear trend are shown below.
 <<Test 2nd coefficient>>=
 res_2 <- glmQLFTest(fit, coef=2)
 summary(decideTests(res_2))
@@ -853,8 +855,8 @@ topGO(go, truncate.term = 30, n=15)
 @
 
 It can be seen that most of the top GO terms are down-regulated.
-Here, we choose the top 10 down-regulated terms for each GO category and show the results in a barplot (Figure 12).
-<<Figure12, fig.cap="Barplot of $-\\log_{10}$ p-values of the top 10 down-regulated GO terms under each GO category.", fig.width=10, fig.height = 7.5, out.width="70%">>=
+Here, we choose the top 10 down-regulated terms for each GO category and show the results in a barplot (Figure 13).
+<<Figure13, fig.cap="Barplot of $-\\log_{10}$ p-values of the top 10 down-regulated GO terms under each GO category.", fig.width=10, fig.height = 7.5, out.width="70%">>=
 top_go <- rbind.data.frame(topGO(go, ont =c("BP"), sort="Down",n=10),
                            topGO(go, ont =c("CC"), sort="Down",n=10),
                            topGO(go, ont =c("MF"), sort="Down",n=10))
@@ -871,7 +873,7 @@ ggplot(data = d, aes(x = neg_log10_P, y = Term, fill = Ont) ) +
 
 \subsection*{KEGG pathway analysis}
 
-The Kyoto Encyclopedia of Genes and Genomes (KEGG) is another commonly used database for exploring signaling pathways to understand the molecular mechanism of diseases and biological processes.
+The Kyoto Encyclopedia of Genes and Genomes \cite{kanehisa2000kegg} (KEGG) is another commonly used database for exploring signaling pathways to understand the molecular mechanism of diseases and biological processes.
 A KEGG analysis can be done by using \code{kegga} function. \newline
 
 The top enriched KEGG pathways can be viewed by using \code{topKEGG} function.
@@ -881,8 +883,8 @@ topKEGG(kegg, truncate.path=40, n=15)
 @ 
 
 The results show that most of the top enriched KEGG pathways are down-regulated.
-Here, we select the top 15 down-regulated KEGG pathways and visualize their significance in a barplot (Figure 13).
-<<Figure13, fig.cap="Barplot of $-\\log_{10}$ p-values of the top 15 down-regulated KEGG pathways.", fig.width=8, fig.height = 4.5, out.width="55%">>=
+Here, we select the top 15 down-regulated KEGG pathways and visualize their significance in a barplot (Figure 14).
+<<Figure14, fig.cap="Barplot of $-\\log_{10}$ p-values of the top 15 down-regulated KEGG pathways.", fig.width=8, fig.height = 4.5, out.width="55%">>=
 top_path <- topKEGG(kegg,sort="Down",n=15)
 data_for_barplot <- transform(top_path, P_DE=P.Down, neg_log10_P=-log10(P.Down))
 data_for_barplot$Pathway <- factor(data_for_barplot$Pathway,
@@ -894,6 +896,7 @@ ggplot(data=data_for_barplot,aes(x=neg_log10_P, y=Pathway) ) +
 @
 
 Among the top down-regulated pathways, the PI3K-Akt signaling pathway is noteworthy as it is typically involved in cell proliferation and plays a crucial role in mammary gland development.\newline 
+
 To assess the overall expression level of the PI3K-Akt signaling pathway across pseudotime, a plot is generated by plotting the average expression level of all the genes in the pathway against pseudotime.
 The information of all the genes in the pathway can be obtained by \code{getGeneKEGGLinks} and \code{getKEGGPathwayNames}.
 <<keggLinks>>=
@@ -908,8 +911,8 @@ d <- data.frame(avg_logCPM = d, avg_pseudotime = y$samples$pseudotime)
 head(d)
 @
 
-The plot below clearly illustrates a significant down-regulation of the PI3K-Akt pathway along pseudotime (Figure 14).
-<<Figure14, fig.cap="A smooth curve of PI3K-Akt signaling pathway expression level against pseudotime.", fig.width = 6.5, fig.height = 5, out.width="50%">>=
+The plot below clearly illustrates a significant down-regulation of the PI3K-Akt pathway along pseudotime (Figure 15).
+<<Figure15, fig.cap="A smooth curve of PI3K-Akt signaling pathway expression level against pseudotime.", fig.width = 6.5, fig.height = 5, out.width="50%">>=
 ggplot(data = d,aes(x = avg_pseudotime, y = avg_logCPM) ) +
     geom_smooth(color=my_colors_15[1],se = FALSE) + 
     labs(x="Pseudotime", y="Average log-CPM", 
@@ -934,7 +937,7 @@ The analytical framework presented here can be utilized for any single-cell expe
 
 \section*{Packages used}
 
-This workflow depends on various packages from the Bioconductor project version 3.15 and the Comprehensive R Archive Network (CRAN), running on R version 4.2.1 or higher.
+This workflow depends on various packages from the Bioconductor project version 3.17, the Comprehensive R Archive Network (CRAN) and GitHub, running on R version 4.3.0 or higher.
 The complete list of the packages used for this workflow are shown below:
 <<sessionInfo, eval=TRUE>>=
 sessionInfo()
@@ -942,31 +945,24 @@ sessionInfo()
 
 
 % save rdata, delete this code chunk after done
-<<save rdata, echo=FALSE, eval=eval_save_rdata>>=
+<<save rdata, include=FALSE, eval=eval_save_rdata, purl=FALSE>>=
 save.image(file = "time_course_analysis.rdata")
 @
 
 
-\section*{Data and software availability} % Required
+\section*{Data availability} % Required
 
-\subsection*{Source data}
+\subsection*{Underlying data}
 
-The single cell RNA-seq datasets used in this study were obtained from the Gene Expression Omnibus (GEO) with accession numbers of \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103275}{GSE103275} \cite{pal2017mouse} and \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE164017}{GSE164017} \cite{pal2021mouse}.
+The single-cell RNA-seq datasets used in this study were obtained from the Gene Expression Omnibus (GEO) with accession numbers of \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103275}{GSE103275} \cite{pal2017mouse} and \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE164017}{GSE164017} \cite{pal2021mouse}.
 
-\subsection*{Software availability}
+\section*{Software availability}
 
-All the packages used in this workflow are publicly available from the \href{https://www.bioconductor.org/}{Bioconductor} project (version 3.15) and the Comprehensive R Archive Network (\href{https://cran.r-project.org/}{CRAN}).
+Source code available from: \url{https://github.com/jinming-cheng/TimeCoursePaperWorkflow}\\
+Archived source code at time of publication: \url{https://doi.org/10.5281/zenodo.7879833} \cite{cheng2023zenodo}\\
+License: \href{https://opensource.org/license/gpl-3-0/}{GNU General Public License version 3} (GPL-3.0-only)\\
 
-
-\section*{Competing interests}
-No competing interests were disclosed.
-
-\section*{Grant information}
-This work was supported by the Medical Research Future Fund (MRF1176199 to YC), a University of Melbourne Research Scholarship to JC,
-the National Health and Medical Research Council (Fellowship 1154970 to GKS) and the Chan Zuckerberg Initiative (2021-237445 to GKS and YC).
-
-\section*{Acknowledgements}
-Not applicable.
+All the packages used in this workflow are publicly available from the \href{https://www.bioconductor.org/}{Bioconductor} project (version 3.17), the Comprehensive R Archive Network (\href{https://cran.r-project.org/}{CRAN}) and \href{https://github.com/}{GitHub}.
 
 
 {\small\bibliographystyle{unsrtnat}
