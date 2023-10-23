@@ -152,20 +152,20 @@ my_colors_15 <- c("cornflowerblue", "darkorchid1", "firebrick1", "gold",
                   "goldenrod4", "cyan", "gray90")
 
 
-## ----Figure1, fig.cap="Scatter plots of quality control metrics across all the samples. The plots on the left show library size vs number of genes detected, whereas those on the right show library size vs mitochondria read percentage.",fig.height = 2*5*0.8,fig.width=4*2*0.8,out.width="70%"----
+## ----Figure1, fig.cap="Scatter plots of quality control metrics across all the samples. Each dot represents a cell. The plots on the left show number of reads vs number of genes detected, whereas those on the right show number of reads vs mitochondria read percentage.",fig.height = 2*5*0.8,fig.width=4*2*0.8,out.width="70%"----
 p1 <- ggplot(data = dge_merged$samples,
              aes(x=num_exp_gene, y=lib.size, color = group ) ) + 
       geom_point(size=0.5, show.legend=FALSE) + 
       facet_wrap(group~., ncol=1) + 
       scale_color_manual(values=my_colors_15 ) + 
-      labs(x="Number of genes", y="Library size") +
+      labs(x="Number of genes", y="Number of reads") +
       my_theme_ggplot + my_theme_facet
 p2 <- ggplot(data = dge_merged$samples,
              aes(x = mito_percentage, y=lib.size, color = group ) ) + 
       geom_point(size = 0.5, show.legend = FALSE) + 
       facet_wrap(group~., ncol=1) + 
       scale_color_manual(values=my_colors_15) + 
-      labs(x="Mito-percentage", y="Library size") +
+      labs(x="Mito-percentage", y="Number of reads") +
       my_theme_ggplot + my_theme_facet
 patchwork::wrap_plots(p1, p2, ncol=2)
 
@@ -341,7 +341,7 @@ p1
 
 
 ## ----orderCells---------------------------------------------------------------
-cds_obj <- order_cells(cds_obj, root_pr_nodes="Y_64")
+cds_obj <- order_cells(cds_obj, root_pr_nodes="Y_65")
 
 
 ## ----Figure7, fig.cap="UMAP visualization of pseudotime computed by monocle3. Cells are coloured by pseudotime.", fig.width=5*1.2, fig.height = 4*1.2, out.width="55%"----
@@ -410,10 +410,10 @@ par(mar = c(5.1, 5.1, 2.1, 2.1), mfrow=c(1,2))
 cluster <- y$samples$seurat_clusters
 group <- y$samples$group
 plotMDS(y, labels = round(y$samples$pseudotime, 2),
-    xlim=c(-7,4), ylim=c(-3,3), col=my_colors_15[cluster])
+    xlim=c(-6,4), ylim=c(-3,3), col=my_colors_15[cluster])
 legend("topleft", legend=levels(cluster), col=my_colors_15, pch=16)
 plotMDS(y, labels = round(y$samples$pseudotime, 2),
-    xlim=c(-7,4), ylim=c(-3,3), col=my_colors_15[group])
+    xlim=c(-6,4), ylim=c(-3,3), col=my_colors_15[group])
 legend("topleft", legend=levels(group), col=my_colors_15, pch=16)
 
 
@@ -426,17 +426,17 @@ r <- QR$rank
 R_rank <- QR$qr[1:r,1:r]
 Z <- t(backsolve(R_rank,t(A),transpose=TRUE))
 Z <- Z[,-1]
-design <- model.matrix(~ Z)
-design
+group <- y$samples$group
+design <- model.matrix(~ Z + group)
 
 
-## ----Figure9, fig.cap="A scatter plot of the biological coefficient of variation (BCV) against the average abundance of each gene. The square-root estimates of the common, trended and gene-wise NB dispersions are shown.", fig.width = 5, fig.height = 4.5, out.width="55%"----
+## ----Figure9, fig.cap="A scatter plot of the biological coefficient of variation (BCV) against the average abundance of each gene in log2 count-per-million (CPM). The square-root estimates of the common, trended and gene-wise NB dispersions are shown.", fig.width = 5, fig.height = 4.5, out.width="55%"----
 y <- estimateDisp(y, design)
 sqrt(y$common.dispersion)
 plotBCV(y)
 
 
-## ----Figure10, fig.cap="A scatter plot of the quarter-root QL dispersion against the average abundance of each gene. Estimates are shown for the raw, trended and squeezed dispersions.", fig.width=5, fig.height = 4.5, out.width="55%"----
+## ----Figure10, fig.cap="A scatter plot of the quarter-root QL dispersion against the average abundance of each gene in log2 count-per-million (CPM). Estimates are shown for the raw, trended and squeezed dispersions.", fig.width=5, fig.height = 4.5, out.width="55%"----
 fit <- glmQLFit(y, design, robust=TRUE)
 plotQLDisp(fit)
 
@@ -462,22 +462,27 @@ head(tab.up)
 head(tab.down)
 
 
-## ----Figure11, fig.cap="Scatter plots of expression of top genes along pseudotime. The black dots indicate the observed values, while the red line represents the fitted values calculated along pseudotime.", fig.width = 8.4, fig.height = 5.6, out.width="100%"----
-logCPM.obs <- edgeR::cpm(y, log=TRUE, prior.count=fit$prior.count)
-logCPM.fit <- edgeR::cpm(fit, log=TRUE)
-topGenes <- c(rownames(tab.up)[1:3], rownames(tab.down)[1:3])
-par(mfrow=c(2,3))
-for(i in 1:6) {
+## ----Figure11, fig.cap="Line graphs of expression level of top genes along pseudotime. The red line represents the predicted expression level in log2-CPM along pseudotime.", fig.width = 3*3*0.8, fig.height = 3*4*0.8, out.width="90%"----
+design2 <- model.matrix(~X+group)
+fit2 <- glmQLFit(y, design2, robust=TRUE)
+pt <- y$samples$pseudotime
+pt_new <- round(seq(min(pt),max(pt),length.out=100),2)
+X_new <- predict(X, newx=pt_new)
+topGenes <- c(rownames(tab.up)[1:6], rownames(tab.down)[1:6])
+par(mfrow=c(4,3))
+for(i in 1:12) {
   Symbol <- topGenes[i]
-  logCPM.obs.i <- logCPM.obs[Symbol, ]
-  logCPM.fit.i <- logCPM.fit[Symbol, ]
-  plot(y$samples$pseudotime, logCPM.obs.i, xlab="pseudotime",
-       ylab="log-CPM", main=Symbol, pch=16, frame=FALSE)
-  lines(y$samples$pseudotime, logCPM.fit.i, col="red", lwd=2)
+  beta <- coef(fit2)[Symbol,]
+  AverageIntercept <- beta[1] + mean(c(0,beta[5:8]))
+  Trend <- AverageIntercept + X_new %*% beta[2:4]
+  Trend <- (Trend + log(1e6))/log(2)
+  plot(pt_new,Trend,type="l",frame=FALSE,col="red",lwd=2,
+       xlab="Pseudotime",ylab="Log2CPM",main=Symbol)
 }
 
 
 ## ----Figure12, fig.cap="Heatmap of top 20 up and top 20 down genes. Rows are genes and columns are pseudo-bulk samples.", fig.width=6, fig.height = 8, out.width="60%"----
+logCPM.obs <- edgeR::cpm(y, log=TRUE, prior.count=fit$prior.count)
 topGenes <- c(rownames(tab.up)[1:20], rownames(tab.down)[1:20])
 z <- logCPM.obs[topGenes, ]
 z <- t(scale(t(z)))
